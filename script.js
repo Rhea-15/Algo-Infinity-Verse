@@ -994,7 +994,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initProfile();
   initScrollEffects();
   initDarkMode();
-  initNewsletterValidation();
 
   // Update profile display after loading
   updateProfile();
@@ -2608,7 +2607,7 @@ function submitQuizCode() {
   updateDashboard();
   updateGamification();
   initRoadmap();
-  initTopicsSection();
+  initTopicsSection(); 
 
   closeQuizEditor();
   showNotification(
@@ -2975,84 +2974,3 @@ document.addEventListener("click", (e) => {
 window.addEventListener("load", () => {
   console.log("Algo Infinity Verse loaded successfully! 🚀");
 });
-
-// ===== NEWSLETTER FORM VALIDATION =====
-function validateEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email.trim());
-}
-
-function initNewsletterValidation() {
-  const forms = [
-      { formId: 'newsletterForm', inputId: 'newsletterEmail', errorId: 'newsletterError' },
-      { formId: 'newsletterFormSD', inputId: 'newsletterEmailSD', errorId: 'newsletterErrorSD' }
-  ];
-
-  forms.forEach(({ formId, inputId, errorId }) => {
-      const form = document.getElementById(formId);
-      if (!form) return;
-
-      const input = document.getElementById(inputId);
-      const errorSpan = document.getElementById(errorId);
-
-      function showError(message) {
-          errorSpan.textContent = message;
-          input.classList.add('input-error');
-          input.classList.remove('input-success');
-          input.setAttribute('aria-invalid', 'true');
-      }
-
-      function showSuccess() {
-          errorSpan.textContent = '';
-          input.classList.remove('input-error');
-          input.classList.add('input-success');
-          input.removeAttribute('aria-invalid');
-      }
-
-      function clearState() {
-          errorSpan.textContent = '';
-          input.classList.remove('input-error', 'input-success');
-          input.removeAttribute('aria-invalid');
-      }
-
-      // Validate on blur (when user leaves the field)
-      input.addEventListener('blur', () => {
-          const value = input.value.trim();
-          if (!value) {
-              showError('Email address is required.');
-          } else if (!validateEmail(value)) {
-              showError('Please enter a valid email address (e.g. user@example.com).');
-          } else {
-              showSuccess();
-          }
-      });
-
-      // Clear error while user is typing
-      input.addEventListener('input', () => {
-              clearState();
-      });
-
-      form.addEventListener('submit', (e) => {
-          e.preventDefault();
-          const value = input.value.trim();
-
-          if (!value) {
-              showError('Email address is required.');
-              input.focus();
-              return;
-          }
-
-          if (!validateEmail(value)) {
-              showError('Please enter a valid email address (e.g. user@example.com).');
-              input.focus();
-              return;
-          }
-
-          // Valid — show success notification and reset
-          showSuccess();
-          showNotification('🎉 Successfully subscribed to the newsletter!', 'success');
-          input.value = '';
-          setTimeout(() => clearState(), 1500);
-      });
-  });
-}
