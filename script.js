@@ -2984,8 +2984,7 @@ function validateEmail(email) {
 
 function initNewsletterValidation() {
   const forms = [
-      { formId: 'newsletterForm', inputId: 'newsletterEmail', errorId: 'newsletterError' },
-      { formId: 'newsletterFormSD', inputId: 'newsletterEmailSD', errorId: 'newsletterErrorSD' }
+      { formId: 'newsletterForm', inputId: 'newsletterEmail', errorId: 'newsletterError' }
   ];
 
   forms.forEach(({ formId, inputId, errorId }) => {
