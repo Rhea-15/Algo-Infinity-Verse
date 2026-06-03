@@ -984,6 +984,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initLoadingScreen();
   initNavbar();
   initHeroSection();
+  initTopicOfTheDay();
   initTopicsSection();
   initQuizSection();
   initPracticeSection();
@@ -994,7 +995,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initProfile();
   initScrollEffects();
   initDarkMode();
-  initNewsletterValidation();
 
   // Update profile display after loading
   updateProfile();
@@ -1317,6 +1317,37 @@ function getTopicProgress(topicName) {
 }
 
 // ===== TOPICS SECTION =====
+function getDailyTopic() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now - start;
+  const oneDay = 1000 * 60 * 60 * 24;
+  const dayOfYear = Math.floor(diff / oneDay);
+  const index = dayOfYear % dsaTopics.length;
+  return dsaTopics[index];
+}
+
+function initTopicOfTheDay() {
+  const topic = getDailyTopic();
+  if (!topic) return;
+
+  document.getElementById('totdIcon').textContent = topic.icon;
+  document.getElementById('totdTitle').textContent = topic.name;
+  document.getElementById('totdDesc').textContent = topic.description;
+
+  const diffEl = document.getElementById('totdDifficulty');
+  diffEl.textContent = topic.difficulty;
+  diffEl.className = `totd-difficulty difficulty-badge ${getDifficultyClass(topic.difficulty)}`;
+
+  const progress = getTopicProgress(topic.name);
+  document.getElementById('totdProblems').textContent =
+      `${progress.completed}/${progress.total} solved`;
+
+  document.getElementById('totdBtn').addEventListener('click', () => {
+      openTopicModal(topic);
+  });
+}
+
 function initTopicsSection() {
   const topicsGrid = document.querySelector(".topics-grid");
   topicsGrid.innerHTML = '';
@@ -2608,7 +2639,7 @@ function submitQuizCode() {
   updateDashboard();
   updateGamification();
   initRoadmap();
-  initTopicsSection();
+  initTopicsSection(); 
 
   closeQuizEditor();
   showNotification(
@@ -2975,83 +3006,3 @@ document.addEventListener("click", (e) => {
 window.addEventListener("load", () => {
   console.log("Algo Infinity Verse loaded successfully! 🚀");
 });
-
-// ===== NEWSLETTER FORM VALIDATION =====
-function validateEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email.trim());
-}
-
-function initNewsletterValidation() {
-  const forms = [
-      { formId: 'newsletterForm', inputId: 'newsletterEmail', errorId: 'newsletterError' }
-  ];
-
-  forms.forEach(({ formId, inputId, errorId }) => {
-      const form = document.getElementById(formId);
-      if (!form) return;
-
-      const input = document.getElementById(inputId);
-      const errorSpan = document.getElementById(errorId);
-
-      function showError(message) {
-          errorSpan.textContent = message;
-          input.classList.add('input-error');
-          input.classList.remove('input-success');
-          input.setAttribute('aria-invalid', 'true');
-      }
-
-      function showSuccess() {
-          errorSpan.textContent = '';
-          input.classList.remove('input-error');
-          input.classList.add('input-success');
-          input.removeAttribute('aria-invalid');
-      }
-
-      function clearState() {
-          errorSpan.textContent = '';
-          input.classList.remove('input-error', 'input-success');
-          input.removeAttribute('aria-invalid');
-      }
-
-      // Validate on blur (when user leaves the field)
-      input.addEventListener('blur', () => {
-          const value = input.value.trim();
-          if (!value) {
-              showError('Email address is required.');
-          } else if (!validateEmail(value)) {
-              showError('Please enter a valid email address (e.g. user@example.com).');
-          } else {
-              showSuccess();
-          }
-      });
-
-      // Clear error while user is typing
-      input.addEventListener('input', () => {
-              clearState();
-      });
-
-      form.addEventListener('submit', (e) => {
-          e.preventDefault();
-          const value = input.value.trim();
-
-          if (!value) {
-              showError('Email address is required.');
-              input.focus();
-              return;
-          }
-
-          if (!validateEmail(value)) {
-              showError('Please enter a valid email address (e.g. user@example.com).');
-              input.focus();
-              return;
-          }
-
-          // Valid — show success notification and reset
-          showSuccess();
-          showNotification('🎉 Successfully subscribed to the newsletter!', 'success');
-          input.value = '';
-          setTimeout(() => clearState(), 1500);
-      });
-  });
-}
