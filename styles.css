@@ -38,6 +38,10 @@ body {
   overflow-x: hidden;
 }
 
+.hidden {
+  display: none !important;
+}
+
 /* ===== LOADING SCREEN ===== */
 #loading-screen {
   position: fixed;
@@ -774,6 +778,21 @@ body {
   border-color: var(--primary);
 }
 
+/* Problem Counter CSS */
+.problem-counter-container {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  padding: 0 0.5rem;
+  font-weight: 500;
+}
+
+.problem-counter-container span {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
 .problems-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -787,6 +806,24 @@ body {
   padding: 1.5rem;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+}
+/* ===== RECENTLY VIEWED PROBLEMS ===== */
+
+.recent-problem {
+  padding: 10px 12px;
+  margin: 8px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.recent-problem:hover {
+  transform: translateX(5px);
+}
+
+.recent-problem:not(:last-child) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .problem-card:hover {
@@ -1196,20 +1233,24 @@ body {
 
 .badge-tooltip {
   position: absolute;
-  bottom: -30px;
+  bottom: -5px;
   left: 50%;
   transform: translateX(-50%);
   background: var(--dark-card);
-  padding: 0.3rem 0.6rem;
-  border-radius: 5px;
-  font-size: 0.7rem;
-  white-space: nowrap;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  white-space: normal;
+  text-align: center;
+  width: min(220px, max-content);
+  line-height: 1.3;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
 }
 
-.badge:hover .badge-tooltip {
+.badge:hover .badge-tooltip,
+.badge:focus .badge-tooltip {
   opacity: 1;
 }
 
@@ -3392,4 +3433,113 @@ body.light-mode {
 }
 .delay-5 {
   animation-delay: 0.5s;
+}
+
+/* ===== TOPIC OF THE DAY ===== */
+.totd-section {
+  padding: 2rem 0;
+}
+
+.totd-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+  border-radius: 20px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.totd-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--gradient-1);
+}
+
+.totd-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--gradient-1);
+  color: white;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.totd-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.totd-icon {
+  font-size: 3.5rem;
+  flex-shrink: 0;
+}
+
+.totd-info {
+  flex: 1;
+}
+
+.totd-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.totd-desc {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 0.8rem;
+}
+
+.totd-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.totd-problems {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+}
+
+.totd-btn {
+  width: fit-content;
+}
+
+@media (max-width: 768px) {
+  .totd-content {
+      flex-direction: column;
+      align-items: flex-start;
+  }
+
+  .totd-icon {
+      font-size: 2.5rem;
+  }
+
+  .totd-title {
+      font-size: 1.4rem;
+  }
+
+  .totd-btn {
+      width: 100%;
+      text-align: center;
+  }
 }
