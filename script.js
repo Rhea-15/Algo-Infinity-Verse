@@ -968,7 +968,13 @@ let userProgress = {
   name: "Learner",
   avatar: "🚀",
   completedProblems: [],
+
+  favoriteProblems: [],//here i have added a new property to store the user's favorite problems
+  recentProblems: [], //here i have added a new property to store the user's recent problems
+
   favoriteProblems: [], //here i have added a new property to store the user's favorite problems
+  problemNotes: {},
+
   xp: 0,
   level: 1,
   streak: 0,
@@ -977,6 +983,8 @@ let userProgress = {
   quizScores: {}, // topic -> { bestScore, attempts, totalXP }
 };
 
+applySavedTheme();
+
 // ===== INITIALIZATION =====
 document.addEventListener("DOMContentLoaded", () => {
   console.log("DOMContentLoaded fired, initializing app...");
@@ -984,6 +992,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initLoadingScreen();
   initNavbar();
   initHeroSection();
+  initTopicOfTheDay();
   initTopicsSection();
   initQuizSection();
   initPracticeSection();
@@ -992,8 +1001,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initGamification();
   initChatbot();
   initProfile();
-  initScrollEffects();
   initDarkMode();
+  initScrollEffects();
 
   // Update profile display after loading
   updateProfile();
@@ -1316,6 +1325,37 @@ function getTopicProgress(topicName) {
 }
 
 // ===== TOPICS SECTION =====
+function getDailyTopic() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now - start;
+  const oneDay = 1000 * 60 * 60 * 24;
+  const dayOfYear = Math.floor(diff / oneDay);
+  const index = dayOfYear % dsaTopics.length;
+  return dsaTopics[index];
+}
+
+function initTopicOfTheDay() {
+  const topic = getDailyTopic();
+  if (!topic) return;
+
+  document.getElementById('totdIcon').textContent = topic.icon;
+  document.getElementById('totdTitle').textContent = topic.name;
+  document.getElementById('totdDesc').textContent = topic.description;
+
+  const diffEl = document.getElementById('totdDifficulty');
+  diffEl.textContent = topic.difficulty;
+  diffEl.className = `totd-difficulty difficulty-badge ${getDifficultyClass(topic.difficulty)}`;
+
+  const progress = getTopicProgress(topic.name);
+  document.getElementById('totdProblems').textContent =
+      `${progress.completed}/${progress.total} solved`;
+
+  document.getElementById('totdBtn').addEventListener('click', () => {
+      openTopicModal(topic);
+  });
+}
+
 function initTopicsSection() {
   const topicsGrid = document.querySelector(".topics-grid");
   topicsGrid.innerHTML = '';
@@ -1759,6 +1799,15 @@ function renderProblems(filter = "all", searchQuery = "") {
     return matchesFilter && matchesSearch;
   });
 
+  // Count updation functionality
+  const visibleCountEl = document.getElementById("visible-count");
+  const totalCountEl = document.getElementById("total-count");
+  
+  if (visibleCountEl && totalCountEl) {
+    visibleCountEl.textContent = filteredProblems.length;
+    totalCountEl.textContent = practiceProblems.length;
+  }
+
   problemsGrid.innerHTML = filteredProblems
     .map(
       (problem) => `
@@ -2029,6 +2078,7 @@ function updateDashboard() {
 
   updateActivityList();
   updateBadges();
+  updateRecentProblems(); // Recently Viewed Problems
   updateLeaderboard();
 }
 
@@ -2063,6 +2113,52 @@ function updateActivityList() {
     )
     .join("");
 }
+// ===== RECENTLY VIEWED PROBLEMS ===== //
+function updateRecentProblems() {
+  const container = document.getElementById("recentProblemsList");
+
+  if (!container) return;
+
+  if (
+    !userProgress.recentProblems ||
+    userProgress.recentProblems.length === 0
+  ) {
+    container.innerHTML =
+      "<p>No recently viewed problems</p>";
+    return;
+  }
+
+  container.innerHTML = userProgress.recentProblems
+    .map((id) => {
+      const problem = practiceProblems.find(
+        (p) => p.id === id
+      );
+
+      if (!problem) return "";
+
+      return `
+        <div class="recent-problem" data-id="${problem.id}">
+          ${problem.title}
+        </div>
+      `;
+    })
+    .join("");
+
+  container.querySelectorAll(".recent-problem")
+    .forEach((item) => {
+      item.addEventListener("click", () => {
+        const problemId = parseInt(item.dataset.id);
+
+        const problem = practiceProblems.find(
+          (p) => p.id === problemId
+        );
+
+        if (problem) {
+          openQuizEditor(problem);
+        }
+      });
+    });
+}
 
 function updateBadges() {
   const container = document.getElementById("badgesContainer");
@@ -2073,26 +2169,48 @@ function updateBadges() {
       id: 1,
       icon: "🌟",
       name: "First Steps",
+      description: "Begin your journey",
+      criteria: "Solve 1 problem",
       earned: userProgress.completedProblems.length >= 1,
     },
-    { id: 2, icon: "🔥", name: "On Fire", earned: userProgress.streak >= 7 },
-    { id: 3, icon: "💎", name: "Diamond", earned: userProgress.xp >= 5000 },
+    {
+      id: 2,
+      icon: "🔥",
+      name: "On Fire",
+      description: "Keep the momentum going",
+      criteria: "Maintain a 7-day streak",
+      earned: userProgress.streak >= 7,
+    },
+    {
+      id: 3,
+      icon: "💎",
+      name: "Diamond",
+      description: "Reach a major XP milestone",
+      criteria: "Earn 5,000 XP",
+      earned: userProgress.xp >= 5000,
+    },
     {
       id: 4,
       icon: "🚀",
       name: "Rocket",
+      description: "Speed through problems",
+      criteria: "Solve 50 problems",
       earned: userProgress.completedProblems.length >= 50,
     },
     {
       id: 5,
       icon: "👑",
       name: "Master",
+      description: "Achieve expert problem-solving",
+      criteria: "Solve 100 problems",
       earned: userProgress.completedProblems.length >= 100,
     },
     {
       id: 6,
       icon: "🎯",
       name: "Sharpshooter",
+      description: "Hit the target with consistency",
+      criteria: "Solve 25 problems and earn 2,500 XP",
       earned:
         userProgress.completedProblems.length >= 25 && userProgress.xp >= 2500,
     },
@@ -2102,9 +2220,13 @@ function updateBadges() {
   container.innerHTML = badges
     .map(
       (badge) =>
-        `<div class="badge ${badge.earned ? "" : "locked"}">
+        `<div class="badge ${badge.earned ? "" : "locked"}" tabindex="0" aria-label="${badge.name}: ${badge.description}. ${badge.criteria}">
             ${badge.icon}
-            <span class="badge-tooltip">${badge.name}</span>
+            <span class="badge-tooltip">
+              <strong>${badge.name}</strong>
+              <span>${badge.description}</span>
+              <span>${badge.criteria}</span>
+            </span>
         </div>`,
     )
     .join("");
@@ -2113,9 +2235,13 @@ function updateBadges() {
   grid.innerHTML = badges
     .map(
       (badge) =>
-        `<div class="badge-lg ${badge.earned ? "" : "locked"}">
+        `<div class="badge-lg ${badge.earned ? "" : "locked"}" tabindex="0" aria-label="${badge.name}: ${badge.description}. ${badge.criteria}">
             ${badge.icon}
-            <span class="badge-tooltip">${badge.name}</span>
+            <span class="badge-tooltip">
+              <strong>${badge.name}</strong>
+              <span>${badge.description}</span>
+              <span>${badge.criteria}</span>
+            </span>
         </div>`,
     )
     .join("");
@@ -2399,8 +2525,19 @@ function initScrollEffects() {
 }
 
 // ===== DARK MODE =====
+
+function applySavedTheme() {
+  const savedMode = localStorage.getItem("darkMode");
+
+  if (savedMode === "light") {
+    document.body.classList.add("light-mode");
+  }
+}
+
+
 function initDarkMode() {
   const toggle = document.getElementById("darkModeToggle");
+  if (!toggle) return;
   const icon = toggle.querySelector("i");
 
   // Check saved preference
@@ -2464,6 +2601,9 @@ function loadUserData() {
       // Ensure quizScores exists
       if (!userProgress.quizScores) {
         userProgress.quizScores = {};
+      }
+        if (!userProgress.recentProblems) {
+          userProgress.recentProblems = [];
       }
 
       // Update streak if user was active yesterday
@@ -2784,7 +2924,29 @@ function handleProblemClick(problemId) {
   const problem = practiceProblems.find((p) => p.id === problemId);
   if (problem) {
     openQuizEditor(problem);
+    addRecentProblem(problemId);
   }
+}
+// ===== Made addRecentProblem() Function =====
+function addRecentProblem(problemId) {
+  if (!userProgress.recentProblems) {
+    userProgress.recentProblems = [];
+  }
+
+  // Remove existing occurrence
+  userProgress.recentProblems =
+    userProgress.recentProblems.filter(
+      (id) => id !== problemId
+    );
+
+  // Add to beginning
+  userProgress.recentProblems.unshift(problemId);
+
+  // Keep only last 5
+  userProgress.recentProblems =
+    userProgress.recentProblems.slice(0, 5);
+
+  saveUserData();
 }
 
 // ===== SYNTAX HIGHLIGHTING =====
